@@ -1,1 +1,1 @@
-# snake-console is my first program in C++
+# snake-in-console is my first program in C++
