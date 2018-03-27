@@ -1,15 +1,12 @@
-// snake.cpp
+// snake.cpp 
 
-#define _WIN32_WINNT_WINTHRESHOLD           0x0A00 // Windows 10  
-#define _WIN32_WINNT_WIN10                  0x0A00 // Windows 10  
-
-#include <iostream>
+#include "stdafx.h"
 #include <Windows.h>
+#include <iostream>
 #include <string.h>
 #include <conio.h>
 #include <fstream>
 #include <ctime>
-#include "stdafx.h"
 #include <time.h>
 #include <stdio.h>      
 #include <stdlib.h>     
@@ -28,11 +25,11 @@ struct ScoreBoards
 	int score;
 };
 
-struct crd
-{
-	short Y;
-	short X;
-};
+//struct COORD
+//{
+	//short X;
+	//short Y;
+//};
 
 const int COL_WORLD = 20;
 
@@ -47,7 +44,7 @@ void RealRandom()
 }
 
 //return true where the current location (loc) is wall
-bool isWall(char matrix[][COL_WORLD], crd loc, int valueWall, int valueSnake)
+bool isWall(char matrix[][COL_WORLD], COORD loc, int valueWall, int valueSnake)
 {
 	bool iW = false;
 	if ((matrix[loc.X][loc.Y] == valueWall) ||
@@ -100,16 +97,16 @@ void ZeroingAllMatrix(char matrix[][COL_WORLD], int sizeRow, char valueMatrix, i
 }
 
 // return new randomal location
-crd NewLocation(char matrix[][COL_WORLD], int sizeRow, int sizeWall, int empty)
+COORD NewLocation(char matrix[][COL_WORLD], int sizeRow, int sizeWall, int empty)
 {
-	crd NL;
+	COORD NL;
 
 	RealRandom();
 	do
 	{
 		// put randomal location
 		NL.X = rand() % (sizeRow - (sizeWall * 2)) + sizeWall;
-		NL.X = rand() % (COL_WORLD - (sizeWall * 2)) + sizeWall;
+		NL.Y = rand() % (COL_WORLD - (sizeWall * 2)) + sizeWall;
 
 		// run til they empty location
 	} while ((matrix[NL.X][NL.Y] != empty) && (matrix[NL.X][NL.Y] != '\0'));
@@ -118,21 +115,15 @@ crd NewLocation(char matrix[][COL_WORLD], int sizeRow, int sizeWall, int empty)
 }
 
 // print location specific
-void PrintPos(HANDLE console, crd pos, char value)
+void PrintPos(HANDLE console, COORD pos, char value)
 {
-	COORD m;
-	m.X = pos.X;
-	m.Y = pos.Y;
-	SetConsoleCursorPosition(console, m);
+	SetConsoleCursorPosition(console, pos);
 	cout << value;
 }
 
 // print the matrix
-void Print(char matrix[][COL_WORLD], int sizeRow, int sizeWall, crd pos)
+void Print(char matrix[][COL_WORLD], int sizeRow, int sizeWall, COORD pos)
 {
-	COORD m;
-	m.X = pos.X;
-	m.Y = pos.Y;
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	// if the size wall eqal zero put numner '2' (ist the corner of wall) //TODO: fix that commend
 	bool isNeedPrintWall = (sizeWall == 0 ? true : false);
@@ -156,7 +147,7 @@ void Print(char matrix[][COL_WORLD], int sizeRow, int sizeWall, crd pos)
 	// initalization the display
 	system("cls");
 	SetConsoleTextAttribute(console, 27);
-	SetConsoleCursorPosition(console, m);
+	SetConsoleCursorPosition(console, pos);
 
 	// print the up wall
 	for (int UPwall = 0; (UPwall < (sizeRow + 2)) && (isNeedPrintWall); UPwall++) // TODO: Fix that if
@@ -180,7 +171,7 @@ void Print(char matrix[][COL_WORLD], int sizeRow, int sizeWall, crd pos)
 			cout << '%';
 		}
 
-		for (int col = startMatrixPrint; row < endMatrixColPrint; col++)
+		for (int col = startMatrixPrint; col < endMatrixColPrint; col++)
 		{
 			cout << matrix[col][row];
 		}
@@ -201,11 +192,11 @@ void Print(char matrix[][COL_WORLD], int sizeRow, int sizeWall, crd pos)
 }
 
 // Return new location of snake's head after the function move it
-crd moving(int direc, crd corntLocHead, int sizeRow, bool isWantCycle, int sizeWall)
+COORD moving(int direc, COORD corntLocHead, int sizeRow, bool isWantCycle, int sizeWall)
 {
 	//                             left,    up,    down, right 
-	const crd DIRECTTION[4] = { {0,-1}, {-1,0}, {1,0}, {0,1} };
-	crd tryHeadMove = corntLocHead;
+	const COORD DIRECTTION[4] = { {0,-1}, {-1,0}, {1,0}, {0,1} };
+	COORD tryHeadMove = corntLocHead;
 
 	//check the string of cycle
 	if (!isWantCycle)
@@ -330,7 +321,7 @@ bool MenuMidstGame()
 		do
 		{
 			SetConsoleTextAttribute(console, 07);
-			system("cln");
+			system("cls");
 			cout << "\n\n\t would you like to do ?" << endl
 				<< "\t" << menuMidstGame[RETURN_TO_GAME] << "return to game" << endl
 				<< "\t" << menuMidstGame[EXIT] << "exit" << endl;
@@ -389,7 +380,7 @@ bool MenuMidstGame()
 
 // Return true when user want exit and change the direction by user
 bool ProssingPressing(int* direcNow, char matrix[][COL_WORLD],
-	int sizeRow, int sizeWall, crd pos, bool isChangeDirec)
+	int sizeRow, int sizeWall, COORD pos, bool isChangeDirec)
 {
 	const int UP = 0;
 	const int DOWN = 1;
@@ -498,7 +489,7 @@ bool ProssingPressing(int* direcNow, char matrix[][COL_WORLD],
 }
 
 //Prosses the cordination of sneak tail
-void NewTail(crd Head, crd currentLocation[], int sizeSnakeNow)
+void NewTail(COORD Head, COORD currentLocation[], int sizeSnakeNow)
 {
 	// move forward the cordination of snake tail
 	for (int index = sizeSnakeNow; index > 0; index--)
@@ -659,10 +650,10 @@ bool WriteScoreBoards(const char FILE_NAME[], const int SCORE)
 }
 
 // The user put value in matrix and save that at file
-void BuildMap(char map[][COL_WORLD], int sizeRow, int WallValue, int empty, crd pos)
+void BuildMap(char map[][COL_WORLD], int sizeRow, int WallValue, int empty, COORD pos)
 {
 	const int FLAG = 999;
-	crd cordination;
+	COORD cordination;
 	int userValue;
 	pos.Y -= 2;
 
@@ -720,7 +711,7 @@ void LowerSpeed(int* speed) // put down the speed
 }
 
 // Return false when timer out, timer for food
-bool y_timer(clock_t startTime, crd locationTime)
+bool y_timer(clock_t startTime, COORD locationTime)
 {
 	COORD m; m.X = locationTime.X; m.Y = locationTime.Y;
 	double secondsPassed;
@@ -742,7 +733,7 @@ bool y_timer(clock_t startTime, crd locationTime)
 }
 
 // Return true when the food is need to be by timer, select new problem in any eat
-int ControlObstacle(int* speed, bool* isChangeDirec, crd locationTime,
+int ControlObstacle(int* speed, bool* isChangeDirec, COORD locationTime,
 	clock_t* startTime, HANDLE console)
 {
 	COORD m; m.X = locationTime.X; m.Y = locationTime.Y;
@@ -795,9 +786,9 @@ int ControlObstacle(int* speed, bool* isChangeDirec, crd locationTime,
 	return(CO);
 }
 
-crd AddPosition(crd one, crd twoo, crd three)
+COORD AddPosition(COORD one, COORD twoo, COORD three)
 {
-	crd AP;
+	COORD AP;
 
 	AP.X = one.X + twoo.X + three.X;
 	AP.Y = one.Y + twoo.Y + three.Y;
@@ -805,7 +796,7 @@ crd AddPosition(crd one, crd twoo, crd three)
 }
 
 // Return the Score of Snake when the gmae is over/finish. run the Game
-int RunSnake(bool isWantCycle, bool isWantObstacle, crd pos,
+int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 	char map[][COL_WORLD], int sizeRow)
 {
 	const int FOOD_GROW_UP = 2;
@@ -822,12 +813,12 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, crd pos,
 	const int INDEX_HEAD = 0;
 	const int USER_WANT_SAVE = -1;
 	const int USER_WANT_EXIT = -2;
-	const crd LOC_TIME = { 10,30 };
+	const COORD LOC_TIME = { 10,30 };
 	const COORD LOC_SPEED = { 8,28 };
 	const COORD LOC_SCORE = { 8,27 };
 
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-	crd posOfCycle = { -1,-1 };
+	COORD posOfCycle = { -1,-1 };
 	clock_t startTime;
 	int counterFood = 0;
 	int firstWhy;
@@ -839,10 +830,10 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, crd pos,
 	bool isChangeDirec = false;
 	bool isFinishGame = false;
 	bool isTooFast = false;
-	crd tryNewLocHead;
-	crd locLastTail;
-	crd currentLocFood;
-	crd* locTail = new crd[MAX_TAIL];
+	COORD tryNewLocHead;
+	COORD locLastTail;
+	COORD currentLocFood;
+	COORD* locTail = new COORD[MAX_TAIL];
 
 	// Code section
 
@@ -850,9 +841,9 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, crd pos,
 	if (isWantCycle)
 	{
 		// Fix the coursor for start print
-		posOfCycle.X = 0;
-		posOfCycle.Y = 0;
-		printSizeWall = 0;
+		posOfCycle.X = -1;
+		posOfCycle.Y = -1;
+		printSizeWall = -1;
 	}
 
 	// Set the color of console normaly
@@ -973,7 +964,7 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, crd pos,
 		if (obstacleCode == 3)
 		{
 			// Delete from display old timer
-			SetConsoleCursorPosition(console, { LOC_TIME.X,LOC_TIME.Y });
+			SetConsoleCursorPosition(console, LOC_TIME);
 			cout << "                  ";
 
 			// Check is timer out 
@@ -990,7 +981,7 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, crd pos,
 		}
 	}
 
-	system("cln");
+	system("cls");
 	cout << "\n\n\n\t***********************\n" << endl
 		<< "\t oops, you crush,,,\n <<" << endl
 		<< "\t***************************\n" << endl;
@@ -1041,7 +1032,7 @@ void main()
 	int scoreOfPlayer;
 	HWND console = GetConsoleWindow();
 	RECT r;
-	crd BoardInCenter = { 8,4 };
+	COORD BoardInCenter = { 8,4 };
 
 	// Code section
 
@@ -1232,7 +1223,7 @@ void main()
 
 	} while (choise != EXIT);
 
-	cout << "\n\n\t GOOD BYE, SEE YOU AGAIN SOON";
+	cout << "\n\n\t GOOD BYE, SEE YOU AGAIN SOON" << endl;
 }
 
  
