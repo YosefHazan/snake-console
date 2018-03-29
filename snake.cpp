@@ -17,19 +17,18 @@ using namespace std;
 //
 //TODO: VERSION 4.1
 // load and saving // function - PrintPos will print string (not one 'char')
-// control size of matrix // in build map move like the snake presses
+// in build map give the user select location in mouse
+// in build map cancel the `%` simbol and give option to (function) zeroing wall
+//
+// BUG: cancel the press of user when he press the current way
+// BUG: undisplay the cursor him self
+//
 
 struct ScoreBoards
 {
 	char name[11];
 	int score;
 };
-
-//struct COORD
-//{
-	//short X;
-	//short Y;
-//};
 
 const int COL_WORLD = 20;
 
@@ -63,12 +62,12 @@ void ZeroingWall(char matrix[][COL_WORLD], int sizeRow, int sizeWall,
 	for (int runWall = 0; runWall < sizeWall; runWall++)
 	{
 		// run on row to put wall of coll
-		for (int coll = 0; coll < sizeWall; coll++)
+		for (int col = 0; col < COL_WORLD; col++)
 		{
 			// right coll
-			matrix[coll][runWall] = valueWall;
+			matrix[col][runWall] = valueWall;
 			// left coll
-			matrix[coll][runWall + (COL_WORLD - sizeWall)] = valueWall;
+			matrix[col][runWall + (COL_WORLD - sizeWall)] = valueWall;
 		}
 
 		// run on coll to put wall of row
@@ -83,17 +82,16 @@ void ZeroingWall(char matrix[][COL_WORLD], int sizeRow, int sizeWall,
 }
 
 // put in all matrix value of valueMatrix and put by sizeWall the valueWall
-void ZeroingAllMatrix(char matrix[][COL_WORLD], int sizeRow, char valueMatrix, int sizeWall, int valueWall)
+void ZeroingAllMatrix(char matrix[][COL_WORLD], int sizeRow, char valueMatrix, int sizeWall, char valueWall)
 {
-	for (int rowWall = 0; rowWall < sizeRow; rowWall++)
+	for (int row = 0; row < sizeRow; row++)
 	{
-		for (int colWall = 0; colWall < COL_WORLD; colWall++)
+		for (int col = 0; col < COL_WORLD; col++)
 		{
-			matrix[rowWall][colWall] = valueMatrix;
+			matrix[row][col] = valueMatrix;
 		}
-
-		ZeroingWall(matrix, sizeRow, sizeWall, valueWall);
 	}
+		ZeroingWall(matrix, sizeRow, sizeWall, valueWall);
 }
 
 // return new randomal location
@@ -150,7 +148,7 @@ void Print(char matrix[][COL_WORLD], int sizeRow, int sizeWall, COORD pos)
 	SetConsoleCursorPosition(console, pos);
 
 	// print the up wall
-	for (int UPwall = 0; (UPwall < (sizeRow + 2)) && (isNeedPrintWall); UPwall++) // TODO: Fix that if
+	for (int UPwall = 0; ((UPwall < (sizeRow + 2)) && (isNeedPrintWall)); UPwall++) // TODO: Fix that if
 	{
 		cout << '%';
 	}
@@ -194,7 +192,7 @@ void Print(char matrix[][COL_WORLD], int sizeRow, int sizeWall, COORD pos)
 // Return new location of snake's head after the function move it
 COORD moving(int direc, COORD corntLocHead, int sizeRow, bool isWantCycle, int sizeWall)
 {
-	//                             left,    up,    down, right 
+	//                          left(up), up,  down(right), right 
 	const COORD DIRECTTION[4] = { {0,-1}, {-1,0}, {1,0}, {0,1} };
 	COORD tryHeadMove = corntLocHead;
 
@@ -383,16 +381,16 @@ bool ProssingPressing(int* direcNow, char matrix[][COL_WORLD],
 	int sizeRow, int sizeWall, COORD pos, bool isChangeDirec)
 {
 	const int UP = 0;
-	const int DOWN = 1;
+	const int LEFT = 1;
 	const int RIGHT = 2;
-	const int LEFT = 3;
+	const int DOWN = 3;
 	const int MENU = '\r';
 
 	bool isUserWantExit = false;
 	int PrPr = *direcNow;
 	int key;
 
-	// check id key is press
+	// check if key is press
 	if (_kbhit())
 	{ // its press 
 		// Get the press of user
@@ -557,7 +555,7 @@ void ReadScoreBoards(const char NAME[])
 	}
 	else
 	{ // File is Open
-		for (int i = 1; i < !file.eof(); i++)
+		for (int i = 1; !file.eof(); i++)
 		{
 			file.read((char*)&scb, sizeof(scb));
 			pos.Y++;
@@ -592,7 +590,7 @@ bool WriteScoreBoards(const char FILE_NAME[], const int SCORE)
 		scb[newScore].score = 0;
 	}
 
-	scb[OLD_AND_NEW_SCORE].score = 0;
+	scb[OLD_AND_NEW_SCORE].score = SCORE;
 
 	// Read the current score boards
 	file.open(FILE_NAME, ios::in | ios::binary);
@@ -601,33 +599,39 @@ bool WriteScoreBoards(const char FILE_NAME[], const int SCORE)
 	if (file.is_open())
 	{
 		// take the score from file
-		for (int  i = 0; i < MAX_LETTER; i++)
+		for (int  i = 0; i < MAX_NAME_IN_BOARD; i++)
 		{
 			file.read((char*)&scb[i], sizeof(scb[i]));
 		}
 
 		file.close();
-	}
 
-	// Sort the high score
-	for (int board = OLD_AND_NEW_SCORE - 1; board > 0; board--)
-	{
-		// check if the score is high score
-		if (scb[board - 1].score < scb[board].score)
+		// Sort the high score
+		for (int board = OLD_AND_NEW_SCORE - 1; board > 0; board--)
 		{
-			help = scb[board];
-			scb[board] = scb[board - 1];
-			scb[board - 1] = help;
-			isNewHighScore = true;
-			indexNewHighScore = board - 1;
+			// check if the score is high score
+			if (scb[board - 1].score < scb[board].score)
+			{
+				help = scb[board];
+				scb[board] = scb[board - 1];
+				scb[board - 1] = help;
+				isNewHighScore = true;
+				indexNewHighScore = board - 1;
+			}
 		}
+	}
+	else
+	{// if file dosn`t exist
+		indexNewHighScore = 0;
+		isNewHighScore = true;
+		scb[indexNewHighScore].score = SCORE;
 	}
 
 	// Check is new high score
 	if (isNewHighScore)
 	{
 		// TODO: cin.ignore()
-		cout << "\t Enter your name (" << MAX_LETTER << " letter only" << endl;
+		cout << "\t Enter your name (" << MAX_LETTER << " letter only)\n" << endl;
 		cin.getline(scb[indexNewHighScore].name, MAX_LETTER);
 
 		// Write to file the new score boards
@@ -663,7 +667,7 @@ void BuildMap(char map[][COL_WORLD], int sizeRow, int WallValue, int empty, COOR
 		<< "Put empty (" << empty << ") or wall (" << WallValue << ")" << endl
 		<< "If you want to exit enter - " << FLAG << endl;
 	cin >> userValue;
-
+	//TODO: ZeroingWall(matrix, sizeRow, sizeWall, valueWall);
 	// Run til the user put exit
 	while ((userValue == empty) || (userValue == WallValue))
 	{
@@ -871,7 +875,7 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 	// Print the map for user
 	Print(map, ROW_MAP, SIZE_WALL, pos);
 	SetConsoleCursorPosition(console, LOC_SCORE);
-	cout << "press any to start" << endl;
+	cout << "press any key to start" << endl;
 	pos.X++;
 	pos.Y++;
 
@@ -905,9 +909,9 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 
 		// Print the change
 		SetConsoleCursorPosition(console, LOC_SCORE);
-		cout << "your score is - " << counterFood << "   " << endl;
+		cout << "your score is - " << counterFood << "     " << endl;
 		SetConsoleCursorPosition(console, LOC_SPEED);
-		cout << "your speed is - " << speed << "  " << endl;
+		cout << "your speed is - " << speed << "   " << endl;
 
 		//Check if the snake eat the food
 		if ((tryNewLocHead.X == currentLocFood.X) &&
@@ -928,7 +932,7 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 			// Put down the speed
 			LowerSpeed(&speed);
 			// All second eat - tailSize++, but tail isn't can to be bigger form half of world 
-			if (((counterFood% FOOD_GROW_UP) == 0) &&
+			if (((counterFood % FOOD_GROW_UP) == 0) &&
 				(tailSize <= MAX_TAIL))
 			{
 				tailSize++;
@@ -1125,10 +1129,10 @@ void main()
 			if (scoreOfPlayer > 0)
 			{ // No - the user reach some point
 				// Check if function put the score in board
-				if (WriteScoreBoards((char*)SCORE_BOARDS,scoreOfPlayer))
+				if (WriteScoreBoards((char*)SCORE_BOARDS, scoreOfPlayer))
 				{
 					// Print for user the score board
-					ReadScoreBoards(SCORE_BOARDS);
+					ReadScoreBoards((char*)SCORE_BOARDS);
 				}
 			}
 			else
@@ -1225,5 +1229,3 @@ void main()
 
 	cout << "\n\n\t GOOD BYE, SEE YOU AGAIN SOON" << endl;
 }
-
- 
