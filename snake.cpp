@@ -243,6 +243,8 @@ void WriteFile(char matrix[][COL_WORLD], int sizeRow, char finalName[])
 	cin.ignore();
 	cout << "Create map name (" << MAX_LETTER << " letter only)" << endl;
 	cin.getline(fileName, MAX_LETTER);
+	// add the finalName to fileName
+	strcat_s(fileName, SIZE_OF_NAME, finalName);
 
 	//check isn't name of file that exisiting
 	while (isHaveFileName(fileName))
@@ -506,10 +508,12 @@ void ReadFile(char map[][COL_WORLD], int sizeRow, char finalName[])
 	fstream file;
 	// dynamic alocation - the user put here the name for file
 	char* fileName = new char[SIZE_OF_NAME];
+	char fileNameToUser[MAX_LETTER + 1];
 
-	cin.ignore(); // TODO: is Need?
+	//cin.ignore(); // TODO: is Need?
 	cout << "Enter map name (" << MAX_LETTER << " letter only)" << endl;
 	cin.getline(fileName, MAX_LETTER);
+	strcpy_s(fileNameToUser, MAX_LETTER, fileName);
 	// add the finalName to fileName
 	strcat_s(fileName, SIZE_OF_NAME, finalName);
 
@@ -517,7 +521,8 @@ void ReadFile(char map[][COL_WORLD], int sizeRow, char finalName[])
 	// check: is file open?
 	if (!file.is_open())
 	{
-		cout << "cannot open file name: " << fileName << endl;
+		cout << "cannot open file name: " << fileNameToUser << endl
+			<< "press ENTER to continue" << endl;
 		cin.ignore();
 	}
 	else
@@ -531,6 +536,9 @@ void ReadFile(char map[][COL_WORLD], int sizeRow, char finalName[])
 		}
 
 		file.close();
+
+		cout << "\nYour map is loaded, start the game!" << endl;
+		cin.ignore();
 	}
 
 	delete[] fileName; // free dynamic alocation
@@ -663,7 +671,7 @@ void BuildMap(char map[][COL_WORLD], int sizeRow, int WallValue, int empty, COOR
 
 	Print(map, sizeRow, 0, pos); // Function, print the map
 
-	cout << "\nAll the map that you build is a cycle map\n\n" << endl
+	cout << "\nAll the map that you build is a cycle map\n" << endl
 		<< "Put empty (" << empty << ") or wall (" << WallValue << ")" << endl
 		<< "If you want to exit enter - " << FLAG << endl;
 	cin >> userValue;
@@ -692,7 +700,7 @@ void BuildMap(char map[][COL_WORLD], int sizeRow, int WallValue, int empty, COOR
 		Print(map, sizeRow, 0, pos); // Function, print the map
 
 		// Run again
-		cout << "Put empty (" << empty << ") or wall (" << WallValue << ")" << endl
+		cout << "\nPut empty (" << empty << ") or wall (" << WallValue << ")" << endl
 			<< "If you want to exit enter - " << FLAG << endl;
 		cin >> userValue;
 	}
