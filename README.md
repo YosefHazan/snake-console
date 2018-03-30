@@ -1,6 +1,10 @@
 # snake-in-console is my first program in C++
 
+
+
 in the game :
+
+ * the game is with color !!!
 
  * you can do walls and wallk neer them (be attention to not crush with them...!)
    or play with cycle board.
@@ -11,4 +15,4 @@ in the game :
 
  * show your score in the score board.
  
-          -----ENJOY!!!-----
+          -----ENJOY!-----
