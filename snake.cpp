@@ -16,12 +16,13 @@ using namespace std;
 // VERSION 4
 //
 //TODO: VERSION 4.1
-// load and saving // function - PrintPos will print string (not one 'char')
-// in build map give the user select location in mouse
-// in build map cancel the `%` simbol and give option to (function) zeroing wall
+// * load and saving // function - PrintPos will print string (not one 'char')
+// * in build map give the user select location in mouse
+// * in build map cancel the `%` simbol and give option to (function) zeroing wall
+// * in build map - give the user select location by mouse
+// fix: undisplay the cursor him self //print at the last time, in out the board 
 //
 // BUG: cancel the press of user when he press the current way
-// BUG: undisplay the cursor him self
 //
 
 struct ScoreBoards
@@ -598,7 +599,7 @@ bool WriteScoreBoards(const char FILE_NAME[], const int SCORE)
 		scb[newScore].score = 0;
 	}
 
-	scb[OLD_AND_NEW_SCORE].score = SCORE;
+	scb[OLD_AND_NEW_SCORE - 1].score = SCORE; //TODO: BUG: ????
 
 	// Read the current score boards
 	file.open(FILE_NAME, ios::in | ios::binary);
@@ -638,7 +639,6 @@ bool WriteScoreBoards(const char FILE_NAME[], const int SCORE)
 	// Check is new high score
 	if (isNewHighScore)
 	{
-		// TODO: cin.ignore()
 		cout << "\t Enter your name (" << MAX_LETTER << " letter only)\n" << endl;
 		cin.getline(scb[indexNewHighScore].name, MAX_LETTER);
 
@@ -649,7 +649,7 @@ bool WriteScoreBoards(const char FILE_NAME[], const int SCORE)
 		if (file.is_open())
 		{
 			// Put the score in file
-			for (int i = 0; i <= (MAX_NAME_IN_BOARD -2); i++)
+			for (int i = 0; i <= (MAX_NAME_IN_BOARD - 2); i++)
 			{
 				file.write((char*)&scb[i], sizeof(scb[i]));
 			}
@@ -775,14 +775,14 @@ int ControlObstacle(int* speed, bool* isChangeDirec, COORD locationTime,
 		}
 
 		SetConsoleCursorPosition(console, LOCATION_PROBLEM);
-		cout << "High speed ! " << endl;
+		cout << "High speed !         " << endl;
 		break;
 	}
 	case(2): // direc
 	{
 		*isChangeDirec = true;
 		SetConsoleCursorPosition(console, LOCATION_PROBLEM);
-		cout << "trouble direction !" << endl;
+		cout << "trouble direction !  " << endl;
 		break;
 	}
 	case(3): // food
@@ -793,7 +793,12 @@ int ControlObstacle(int* speed, bool* isChangeDirec, COORD locationTime,
 		y_timer(*startTime, locationTime);
 		break;
 	}
-	default: break;
+	default: 
+	{ 
+		SetConsoleCursorPosition(console, LOCATION_PROBLEM);
+		cout << "                     " << endl;
+		break;
+	}
 	}
 	return(CO);
 }
@@ -828,8 +833,8 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 	const COORD LOC_TIME = { 10,30 };
 	const COORD LOC_SPEED = { 8,28 };
 	const COORD LOC_SCORE = { 8,27 };
+	const HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	COORD posOfCycle = { -1,-1 };
 	clock_t startTime;
 	int counterFood = 0;
@@ -951,9 +956,15 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 		// Put empty by last local of snake
 		NewTail(tryNewLocHead, locTail, tailSize);
 		locLastTail = locTail[tailSize];
-		map[locLastTail.X][locLastTail.Y] = EMPTY;
-		PrintPos(console, AddPosition(pos, locLastTail, posOfCycle), EMPTY);
-
+		// Make shur that delete SNAKE, ATTENTION: its fix bug (the bug was delete food)
+		if (map[locLastTail.X][locLastTail.Y] == SNAKE)
+		{
+			map[locLastTail.X][locLastTail.Y] = EMPTY;
+			PrintPos(console, AddPosition(pos, locLastTail, posOfCycle), EMPTY);
+		}
+		// print last time out board, that the cursor not be in the board
+		PrintPos(console, { 30,28 }, EMPTY);
+		
 		// Save the new location of head
 		locTail[INDEX_HEAD] = tryNewLocHead;
 
@@ -962,7 +973,7 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 
 		// Function, getting the user input and return true if user want exit
 		if (ProssingPressing(&direc, map, ROW_MAP, printSizeWall,
-			{ pos.X - 1, pos.Y - 1 }, isChangeDirec)) //TODO: FIX (pos - {1,1})
+			{ pos.X - 1, pos.Y - 1 }, isChangeDirec))
 		{
 			// Break the Game
 			return(USER_WANT_EXIT);
@@ -995,8 +1006,9 @@ int RunSnake(bool isWantCycle, bool isWantObstacle, COORD pos,
 
 	system("cls");
 	cout << "\n\n\n\t***********************\n" << endl
-		<< "\t oops, you crush,,,\n <<" << endl
+		<< "\t oops, you crush,,,\n" << endl
 		<< "\t***************************\n" << endl;
+	cin.ignore();
 
 	delete[] locTail;
 	return(counterFood);
@@ -1235,5 +1247,8 @@ void main()
 
 	} while (choise != EXIT);
 
-	cout << "\n\n\t GOOD BYE, SEE YOU AGAIN SOON" << endl;
+	cout << "\n\n\t GOOD BYE, SEE YOU AGAIN SOON \n" << endl
+		<< "\t ";
 }
+
+ 
